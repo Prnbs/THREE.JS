@@ -120,20 +120,20 @@
         }
 
 
-      //   colM *= (colT + vec3(0.7)) / 1.7;
+        colM *= 0.5*(colT + vec3(0.7)) / 1.7;
         cameraDir = reflect(cameraDir, norm);
         if (intersectWorld(p2, cameraDir, p1, norm, colT)) {
-          col += lightAt(norm, -cameraDir, colT) * colM;
+          col += 0.5*lightAt(norm, -cameraDir, colT) * colM;
         }
-       //   colM *= (colT + vec3(0.7)) / 1.7;
+        colM *= 0.3*(colT + vec3(0.7)) / 1.7;
         cameraDir = reflect(cameraDir, norm);
         if (intersectWorld(p2, cameraDir, p1, norm, colT)) {
-          col += lightAt(norm, -cameraDir, colT) * colM;
+          col += 0.3* lightAt(norm, -cameraDir, colT) * colM;
         }
-        //   colM *= (colT + vec3(0.7)) / 1.7;
+        colM *= 0.1*(colT + vec3(0.7)) / 1.7;
         cameraDir = reflect(cameraDir, norm);
         if (intersectWorld(p2, cameraDir, p1, norm, colT)) {
-          col += lightAt(norm, -cameraDir, colT) * colM;
+          col += 0.1* lightAt(norm, -cameraDir, colT) * colM;
         }
 
       }
@@ -337,10 +337,10 @@
 
     gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
 
- /*   t += 0.03;
+   t += 0.03;
     if (t > Math.PI * 200) {
       t -= Math.PI * 200;
-    }*/
+    }
   }
 
   var timer = 0;
