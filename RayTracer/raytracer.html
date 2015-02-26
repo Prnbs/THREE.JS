@@ -76,15 +76,15 @@
       normal = pos - sphere3Center;
       color = vec3(0.0, 0.9, 0.0);
     }
-    else if (rayDir.y < -0.01)
+    else if (rayDir.x < -0.01)
     {
-      pos = rayOrigin + ((rayOrigin.y + 2.7) / -rayDir.y) * rayDir;
-      if (pos.x*pos.x + pos.z*pos.z > 30.0)
+      pos = rayOrigin + ((rayOrigin.x + 2.7) / -rayDir.x) * rayDir;
+      if (pos.y*pos.y + pos.z*pos.z > 30.0)
       {
         return false;
       }
       normal = vec3(0.0, 1.0, 0.0);
-      if (fract(pos.x / 5.0) > 0.5 == fract(pos.z / 5.0) > 0.5)
+      if (fract(pos.y / 5.0) > 0.5 == fract(pos.z / 5.0) > 0.5)
       {
         color = vec3(1.0);
       }
@@ -337,7 +337,7 @@
 
     gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
 
-   t += 0.03;
+    t += 0.03;
     if (t > Math.PI * 200) {
       t -= Math.PI * 200;
     }
