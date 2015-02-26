@@ -29,7 +29,7 @@
         dist = b - sqrt(d);
     else
         dist = b + sqrt(d);
-    if (dist < 0.0)
+    if (dist < 0.01)
     {
       dist = 10000.0;
       return false;
@@ -113,10 +113,10 @@
     if (intersectWorld(cameraPos, cameraDir, p1,
                        norm, hitCol, false))
     {
-          cameraDir = refract(cameraDir, norm, 0.8);
+          cameraDir = refract(cameraDir, norm, 0.3);
           if (intersectWorld(p1, cameraDir, p2, norm, hitCol, false))
           {
-            cameraDir = refract(cameraDir, norm, 0.8);
+            cameraDir = refract(cameraDir, -norm, 0.7);
             if (intersectWorld(p1, cameraDir, p2, norm, colM, false))
                col = colM;
             gl_FragColor = vec4(col, 1.0);
@@ -284,9 +284,10 @@
     y3 = Math.sin(t * 1.37) * 1.5;
     z3 = Math.sin(t*1.27) * 1.5;
 
-    cameraFrom = { x: Math.sin(t * 0.4) * 18,
-                   y: Math.sin(t * 0.13) * 5 + 5,
-                   z: Math.cos(t * 0.4) * 18 };
+    camTime = 130.150;
+    cameraFrom = { x: Math.sin(camTime * 0.4) * 18,
+                   y: Math.sin(camTime * 0.13) * 5 + 5,
+                   z: Math.cos(camTime * 0.4) * 18 };
     cameraTo = { x:0, y:0, z:0 };
     cameraPersp = 6;
     up = { x: 0, y: 1, z: 0 };
