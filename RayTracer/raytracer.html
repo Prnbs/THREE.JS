@@ -114,22 +114,28 @@
       if (intersectWorld(p1, cameraDir, p2, norm, colT)) {
         col += lightAt(norm, -cameraDir, colT) * colM;
         colM *= (colT + vec3(0.7)) / 1.7;
+
+        //first level recursion
         cameraDir = reflect(cameraDir, norm);
         if (intersectWorld(p2, cameraDir, p1, norm, colT)) {
           col += lightAt(norm, -cameraDir, colT) * colM;
         }
 
-
+        //second level recursion
         colM *= 0.5*(colT + vec3(0.7)) / 1.7;
         cameraDir = reflect(cameraDir, norm);
         if (intersectWorld(p2, cameraDir, p1, norm, colT)) {
           col += 0.5*lightAt(norm, -cameraDir, colT) * colM;
         }
+
+        //third level recursion
         colM *= 0.3*(colT + vec3(0.7)) / 1.7;
         cameraDir = reflect(cameraDir, norm);
         if (intersectWorld(p2, cameraDir, p1, norm, colT)) {
           col += 0.3* lightAt(norm, -cameraDir, colT) * colM;
         }
+
+        //fourth level recursion
         colM *= 0.1*(colT + vec3(0.7)) / 1.7;
         cameraDir = reflect(cameraDir, norm);
         if (intersectWorld(p2, cameraDir, p1, norm, colT)) {
