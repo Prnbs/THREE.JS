@@ -16,7 +16,7 @@
   uniform vec3 sphere3Center;
 
   bool intersectSphere(vec3 center, vec3 rayOrigin, vec3 rayDir,
-                       out float dist) {
+                       out float dist, bool far) {
     vec3 c = center - rayOrigin;
     float b = dot(rayDir, c);
     float d = b*b - dot(c, c) + 1.0;
@@ -25,7 +25,10 @@
       return false;
     }
 
-    dist = b - sqrt(d);
+    if(!far)
+        dist = b - sqrt(d);
+    else
+        dist = b + sqrt(d);
     if (dist < 0.0)
     {
       dist = 10000.0;
@@ -35,7 +38,7 @@
     return true;
   }
 
-  vec3 lightAt(vec3 N, vec3 V, vec3 color) {
+ /* vec3 lightAt(vec3 N, vec3 V, vec3 color) {
     vec3 L = lightDir;
     vec3 R = reflect(-L, N);
 
@@ -46,17 +49,17 @@
     }
 
     return c * color;
-  }
+  }*/
 
   bool intersectWorld(vec3 rayOrigin, vec3 rayDir, out vec3 pos,
-                      out vec3 normal, out vec3 color)
+                      out vec3 normal, out vec3 color, bool far)
   {
     float d1, d2, d3;
     bool h1, h2, h3;
 
-    h1 = intersectSphere(sphere1Center, rayOrigin, rayDir, d1);
-    h2 = intersectSphere(sphere2Center, rayOrigin, rayDir, d2);
-    h3 = intersectSphere(sphere3Center, rayOrigin, rayDir, d3);
+    h1 = intersectSphere(sphere1Center, rayOrigin, rayDir, d1, far);
+    h2 = intersectSphere(sphere2Center, rayOrigin, rayDir, d2, far);
+    h3 = intersectSphere(sphere3Center, rayOrigin, rayDir, d3, far);
 
     if (h1 && d1 < d2 && d1 < d3)
     {
@@ -84,7 +87,7 @@
         return false;
       }
       normal = vec3(0.0, 1.0, 0.0);
-      if (fract(pos.y / 5.0) > 0.5 == fract(pos.z / 5.0) > 0.5)
+      if (fract(pos.y / 1.0) > 0.5 == fract(pos.z / 1.0) > 0.5)
       {
         color = vec3(1.0);
       }
@@ -105,46 +108,23 @@
     vec3 cameraDir = normalize(vPosition - cameraPos);
 
     vec3 p1, norm, p2;
-    vec3 col, colT, colM, col3;
+    vec3 col, hitCol, colM, col3;
+    col = vec3(1);
     if (intersectWorld(cameraPos, cameraDir, p1,
-                       norm, colT)) {
-      col = lightAt(norm, -cameraDir, colT);
-      colM = (colT + vec3(0.7)) / 1.7;
-      cameraDir = reflect(cameraDir, norm);
-      if (intersectWorld(p1, cameraDir, p2, norm, colT)) {
-        col += lightAt(norm, -cameraDir, colT) * colM;
-        colM *= (colT + vec3(0.7)) / 1.7;
+                       norm, hitCol, false))
+    {
+          cameraDir = refract(cameraDir, norm, 0.8);
+          if (intersectWorld(p1, cameraDir, p2, norm, hitCol, false))
+          {
+            cameraDir = refract(cameraDir, norm, 0.8);
+            if (intersectWorld(p1, cameraDir, p2, norm, colM, false))
+               col = colM;
+            gl_FragColor = vec4(col, 1.0);
 
-        //first level recursion
-        cameraDir = reflect(cameraDir, norm);
-        if (intersectWorld(p2, cameraDir, p1, norm, colT)) {
-          col += lightAt(norm, -cameraDir, colT) * colM;
-        }
-
-        //second level recursion
-        colM *= 0.5*(colT + vec3(0.7)) / 1.7;
-        cameraDir = reflect(cameraDir, norm);
-        if (intersectWorld(p2, cameraDir, p1, norm, colT)) {
-          col += 0.5*lightAt(norm, -cameraDir, colT) * colM;
-        }
-
-        //third level recursion
-        colM *= 0.3*(colT + vec3(0.7)) / 1.7;
-        cameraDir = reflect(cameraDir, norm);
-        if (intersectWorld(p2, cameraDir, p1, norm, colT)) {
-          col += 0.3* lightAt(norm, -cameraDir, colT) * colM;
-        }
-
-        //fourth level recursion
-        colM *= 0.1*(colT + vec3(0.7)) / 1.7;
-        cameraDir = reflect(cameraDir, norm);
-        if (intersectWorld(p2, cameraDir, p1, norm, colT)) {
-          col += 0.1* lightAt(norm, -cameraDir, colT) * colM;
-        }
-
-      }
-
-      gl_FragColor = vec4(col, 1.0);
+          }
+          else {
+              gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);
+          }
     }
     else {
       gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);
@@ -291,7 +271,7 @@
     arr.push(v.x, v.y, v.z);
   }
 
-  t = 100;
+  t = 130.150;
   function drawScene()
   {
     x1 = Math.sin(t * 1.1) * 1.5;
@@ -347,6 +327,7 @@
     if (t > Math.PI * 200) {
       t -= Math.PI * 200;
     }
+
   }
 
   var timer = 0;
