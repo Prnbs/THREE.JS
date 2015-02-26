@@ -15,10 +15,10 @@
   uniform vec3 sphere2Center;
   uniform vec3 sphere3Center;
 
-  bool intersectSphere(vec3 center, vec3 lStart, vec3 lDir,
+  bool intersectSphere(vec3 center, vec3 rayOrigin, vec3 rayDir,
                        out float dist) {
-    vec3 c = center - lStart;
-    float b = dot(lDir, c);
+    vec3 c = center - rayOrigin;
+    float b = dot(rayDir, c);
     float d = b*b - dot(c, c) + 1.0;
     if (d < 0.0) {
       dist = 10000.0;
@@ -26,7 +26,8 @@
     }
 
     dist = b - sqrt(d);
-    if (dist < 0.0) {
+    if (dist < 0.0)
+    {
       dist = 10000.0;
       return false;
     }
@@ -47,40 +48,48 @@
     return c * color;
   }
 
-  bool intersectWorld(vec3 lStart, vec3 lDir, out vec3 pos,
-                      out vec3 normal, out vec3 color) {
+  bool intersectWorld(vec3 rayOrigin, vec3 rayDir, out vec3 pos,
+                      out vec3 normal, out vec3 color)
+  {
     float d1, d2, d3;
     bool h1, h2, h3;
 
-    h1 = intersectSphere(sphere1Center, lStart, lDir, d1);
-    h2 = intersectSphere(sphere2Center, lStart, lDir, d2);
-    h3 = intersectSphere(sphere3Center, lStart, lDir, d3);
+    h1 = intersectSphere(sphere1Center, rayOrigin, rayDir, d1);
+    h2 = intersectSphere(sphere2Center, rayOrigin, rayDir, d2);
+    h3 = intersectSphere(sphere3Center, rayOrigin, rayDir, d3);
 
-    if (h1 && d1 < d2 && d1 < d3) {
-      pos = lStart + d1 * lDir;
+    if (h1 && d1 < d2 && d1 < d3)
+    {
+      pos = rayOrigin + d1 * rayDir;
       normal = pos - sphere1Center;
       color = vec3(0.0, 0.0, 0.9);
     }
-    else if (h2 && d2 < d3) {
-      pos = lStart + d2 * lDir;
+    else if (h2 && d2 < d3)
+    {
+      pos = rayOrigin + d2 * rayDir;
       normal = pos - sphere2Center;
       color = vec3(0.9, 0.0, 0.0);
     }
-    else if (h3) {
-      pos = lStart + d3 * lDir;
+    else if (h3)
+    {
+      pos = rayOrigin + d3 * rayDir;
       normal = pos - sphere3Center;
       color = vec3(0.0, 0.9, 0.0);
     }
-    else if (lDir.y < -0.01) {
-      pos = lStart + ((lStart.y + 2.7) / -lDir.y) * lDir;
-      if (pos.x*pos.x + pos.z*pos.z > 30.0) {
+    else if (rayDir.y < -0.01)
+    {
+      pos = rayOrigin + ((rayOrigin.y + 2.7) / -rayDir.y) * rayDir;
+      if (pos.x*pos.x + pos.z*pos.z > 30.0)
+      {
         return false;
       }
       normal = vec3(0.0, 1.0, 0.0);
-      if (fract(pos.x / 5.0) > 0.5 == fract(pos.z / 5.0) > 0.5) {
+      if (fract(pos.x / 5.0) > 0.5 == fract(pos.z / 5.0) > 0.5)
+      {
         color = vec3(1.0);
       }
-      else {
+      else
+      {
         color = vec3(0.0);
       }
     }
@@ -105,6 +114,23 @@
       if (intersectWorld(p1, cameraDir, p2, norm, colT)) {
         col += lightAt(norm, -cameraDir, colT) * colM;
         colM *= (colT + vec3(0.7)) / 1.7;
+        cameraDir = reflect(cameraDir, norm);
+        if (intersectWorld(p2, cameraDir, p1, norm, colT)) {
+          col += lightAt(norm, -cameraDir, colT) * colM;
+        }
+
+
+      //   colM *= (colT + vec3(0.7)) / 1.7;
+        cameraDir = reflect(cameraDir, norm);
+        if (intersectWorld(p2, cameraDir, p1, norm, colT)) {
+          col += lightAt(norm, -cameraDir, colT) * colM;
+        }
+       //   colM *= (colT + vec3(0.7)) / 1.7;
+        cameraDir = reflect(cameraDir, norm);
+        if (intersectWorld(p2, cameraDir, p1, norm, colT)) {
+          col += lightAt(norm, -cameraDir, colT) * colM;
+        }
+        //   colM *= (colT + vec3(0.7)) / 1.7;
         cameraDir = reflect(cameraDir, norm);
         if (intersectWorld(p2, cameraDir, p1, norm, colT)) {
           col += lightAt(norm, -cameraDir, colT) * colM;
@@ -259,7 +285,7 @@
     arr.push(v.x, v.y, v.z);
   }
 
-  t = 0;
+  t = 100;
   function drawScene()
   {
     x1 = Math.sin(t * 1.1) * 1.5;
@@ -311,16 +337,16 @@
 
     gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
 
-    t += 0.03;
+ /*   t += 0.03;
     if (t > Math.PI * 200) {
       t -= Math.PI * 200;
-    }
+    }*/
   }
 
   var timer = 0;
 
   var canvas;
-  function webGLStart()
+  function webGrayOrigin()
   {
     canvas = document.getElementById("canvas");
     initGL(canvas);
@@ -391,7 +417,7 @@
 </head>
 
 
-<body onload="webGLStart(); resizeCanvas(600); flipAnim()" style="height: 100%; margin: 0">
+<body onload="webGrayOrigin(); resizeCanvas(600); flipAnim()" style="height: 100%; margin: 0">
   <div style="height:100%; margin: 0;">
     <div style="text-align:center; padding: 1em;">
       <input type=button onclick="resizeCanvas(400)" value=small>
