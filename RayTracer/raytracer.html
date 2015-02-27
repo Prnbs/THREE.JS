@@ -20,7 +20,7 @@
     vec3 c = center - rayOrigin;
     float b = dot(rayDir, c);
     float d = b*b - dot(c, c) + 1.0;
-    if (d < 0.0) {
+    if (d < 0.01) {
       dist = 10000.0;
       return false;
     }
@@ -38,7 +38,7 @@
     return true;
   }
 
- /* vec3 lightAt(vec3 N, vec3 V, vec3 color) {
+  vec3 lightAt(vec3 N, vec3 V, vec3 color) {
     vec3 L = lightDir;
     vec3 R = reflect(-L, N);
 
@@ -49,41 +49,35 @@
     }
 
     return c * color;
-  }*/
+  }
 
   bool intersectWorld(vec3 rayOrigin, vec3 rayDir, out vec3 pos,
-                      out vec3 normal, out vec3 color, bool far)
+                      out vec3 normal, out vec3 color, out bool isSphere, bool far)
   {
     float d1, d2, d3;
     bool h1, h2, h3;
 
-    h1 = intersectSphere(sphere1Center, rayOrigin, rayDir, d1, far);
-    h2 = intersectSphere(sphere2Center, rayOrigin, rayDir, d2, far);
     h3 = intersectSphere(sphere3Center, rayOrigin, rayDir, d3, far);
 
-    if (h1 && d1 < d2 && d1 < d3)
-    {
-      pos = rayOrigin + d1 * rayDir;
-      normal = pos - sphere1Center;
-      color = vec3(0.0, 0.0, 0.9);
-    }
-    else if (h2 && d2 < d3)
-    {
-      pos = rayOrigin + d2 * rayDir;
-      normal = pos - sphere2Center;
-      color = vec3(0.9, 0.0, 0.0);
-    }
-    else if (h3)
+
+    if (h3)
     {
       pos = rayOrigin + d3 * rayDir;
       normal = pos - sphere3Center;
       color = vec3(0.0, 0.9, 0.0);
+      isSphere = true;
+    }
+    else if(d3 < -9999.0)
+    {
+        color = vec3(0.3,0,0);
     }
     else if (rayDir.x < -0.01)
     {
+      isSphere = false;
       pos = rayOrigin + ((rayOrigin.x + 2.7) / -rayDir.x) * rayDir;
       if (pos.y*pos.y + pos.z*pos.z > 30.0)
       {
+
         return false;
       }
       normal = vec3(0.0, 1.0, 0.0);
@@ -97,6 +91,7 @@
       }
     }
     else {
+    //  color = vec3(0.9,0,0);
      return false;
     }
 
@@ -109,21 +104,35 @@
 
     vec3 p1, norm, p2;
     vec3 col, hitCol, colM, col3;
-    col = vec3(1);
-    if (intersectWorld(cameraPos, cameraDir, p1,
-                       norm, hitCol, false))
-    {
-          cameraDir = refract(cameraDir, norm, 0.3);
-          if (intersectWorld(p1, cameraDir, p2, norm, hitCol, false))
-          {
-            cameraDir = refract(cameraDir, -norm, 0.7);
-            if (intersectWorld(p1, cameraDir, p2, norm, colM, false))
-               col = colM;
-            gl_FragColor = vec4(col, 1.0);
+    bool isSphere;
 
-          }
-          else {
-              gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);
+    col = vec3(1);
+
+    if (intersectWorld(cameraPos, cameraDir, p1,
+                       norm, hitCol, isSphere, false))
+    {
+          if(!isSphere)
+               gl_FragColor = vec4(hitCol, 1.0);
+          else
+          {
+              //outer edge of sphere
+              cameraDir = normalize(refract(cameraDir, normalize(norm), 0.66));
+              //since we are inside sphere now we MUST intersect sphere again
+              if (intersectWorld(p1, cameraDir, p2, norm, hitCol, isSphere, true))
+              {
+
+                //inner edge of sphere
+                cameraDir = normalize(refract(cameraDir, normalize(norm), 1.66));
+                if (intersectWorld(p2, cameraDir, p1, norm, hitCol, isSphere, false))
+                    col = colM;
+                gl_FragColor = vec4(hitCol, 1.0);
+
+              }
+              else
+              {
+                //???
+                  gl_FragColor = vec4(hitCol, 1.0);
+              }
           }
     }
     else {
@@ -274,13 +283,13 @@
   t = 130.150;
   function drawScene()
   {
-    x1 = Math.sin(t * 1.1) * 1.5;
+    x1 = Math.sin(1.1) * 1.5;
     y1 = Math.cos(t * 1.3) * 1.5;
     z1 = Math.sin(t + Math.PI/3) * 1.5;
-    x2 = Math.cos(t * 1.2) * 1.5;
+    x2 = Math.cos(5.2) * 1.5;
     y2 = Math.sin(t * 1.4) * 1.5;
     z2 = Math.sin(t*1.25 - Math.PI/3) * 1.5;
-    x3 = Math.cos(t * 1.15) * 1.5;
+    x3 = Math.cos(8.15) * 1.5;
     y3 = Math.sin(t * 1.37) * 1.5;
     z3 = Math.sin(t*1.27) * 1.5;
 
