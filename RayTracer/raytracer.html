@@ -119,17 +119,18 @@
           else
           {
               //outer edge of sphere
-              cameraDir = normalize(refract(cameraDir, normalize(norm), 0.16));
+              cameraDir = normalize(refract(cameraDir, normalize(norm), 0.5));
               //since we are inside sphere now we MUST intersect sphere again
               if (intersectWorld(p1, cameraDir, p2, norm, hitCol, isSphere, true))
               {
 
-                //inner edge of sphere
-                cameraDir = normalize(refract(cameraDir, normalize(-norm), 0.66));
+               //inner edge of sphere
+                cameraDir = normalize(refract(cameraDir, normalize(-norm), 0.5));
                 if (intersectWorld(p2, cameraDir, p1, norm, hitCol, isSphere, false))
                    gl_FragColor = vec4(hitCol, 1.0);
                  else
                     gl_FragColor = vec4(velvet, 1.0);
+            
 
               }
               else
