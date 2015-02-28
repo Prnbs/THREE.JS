@@ -38,6 +38,8 @@
     return true;
   }
 
+
+
   vec3 lightAt(vec3 N, vec3 V, vec3 color) {
     vec3 L = lightDir;
     vec3 R = reflect(-L, N);
@@ -66,10 +68,6 @@
       normal = pos - sphere3Center;
       color = vec3(0.0, 0.9, 0.0);
       isSphere = true;
-    }
-    else if(d3 < -9999.0)
-    {
-        color = vec3(0.3,0,0);
     }
     else if (rayDir.x < -0.01)
     {
@@ -105,6 +103,11 @@
     vec3 p1, norm, p2;
     vec3 col, hitCol, colM, col3;
     bool isSphere;
+    vec3 red = vec3(0.9,0,0); //red
+    vec3 blue = vec3(0,0.9,0); //blue
+    vec3 yellow = vec3(0.89,0.89,0.24);//yellow
+    vec3 empty = vec3(0,0,0);//black
+    vec3 velvet = vec3(0.3,0.06, 0.96); //velvet
 
     col = vec3(1);
 
@@ -116,27 +119,28 @@
           else
           {
               //outer edge of sphere
-              cameraDir = normalize(refract(cameraDir, normalize(norm), 0.66));
+              cameraDir = normalize(refract(cameraDir, normalize(norm), 0.16));
               //since we are inside sphere now we MUST intersect sphere again
               if (intersectWorld(p1, cameraDir, p2, norm, hitCol, isSphere, true))
               {
 
                 //inner edge of sphere
-                cameraDir = normalize(refract(cameraDir, normalize(norm), 1.66));
+                cameraDir = normalize(refract(cameraDir, normalize(-norm), 0.66));
                 if (intersectWorld(p2, cameraDir, p1, norm, hitCol, isSphere, false))
-                    col = colM;
-                gl_FragColor = vec4(hitCol, 1.0);
+                   gl_FragColor = vec4(hitCol, 1.0);
+                 else
+                    gl_FragColor = vec4(velvet, 1.0);
 
               }
               else
               {
                 //???
-                  gl_FragColor = vec4(hitCol, 1.0);
+                  gl_FragColor = vec4(yellow, 1.0);
               }
           }
     }
     else {
-      gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);
+      gl_FragColor = vec4(empty, 1.0);
     }
   }
 </script>
