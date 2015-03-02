@@ -59,7 +59,7 @@
   {
     float d1, d2, d3;
     bool h1, h2, h3;
-
+    
     h3 = intersectSphere(sphere3Center, rayOrigin, rayDir, d3, far);
 
 
@@ -234,8 +234,6 @@
 
     cameraPos = gl.getUniformLocation(shaderProgram, "cameraPos");
     sphere1Center = gl.getUniformLocation(shaderProgram, "sphere1Center");
-    sphere2Center = gl.getUniformLocation(shaderProgram, "sphere2Center");
-    sphere3Center = gl.getUniformLocation(shaderProgram, "sphere3Center");
     
      initTextures();
   }
@@ -402,7 +400,6 @@ function handleTextureLoaded(image, texture) {
         gl.UNSIGNED_BYTE, image);
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_NEAREST);
-//  gl.generateMipmap(gl.TEXTURE_2D);
   gl.bindTexture(gl.TEXTURE_2D, null);
 }
 
@@ -471,7 +468,7 @@ function handleTextureLoaded(image, texture) {
   <div style="margin: -8em 1em 0;" id="contrib">
     <p>
       Using the framework from <a href="http://learningwebgl.com/blog/?p=205">this
-      example</a> from Giles Thomas.
+        example</a> from Giles Thomas.
     </p>
     <p>
       Feel free to shoot me an
