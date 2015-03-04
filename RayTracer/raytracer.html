@@ -41,7 +41,7 @@
 
 
   vec3 lightAt(vec3 N, vec3 V, vec3 color) {
-    vec3 L = lightDir;
+  /*  vec3 L = lightDir;
     vec3 R = reflect(-L, N);
 
     float c = 0.3 + 0.4 * pow(max(dot(R, V), 0.0), 30.0) + 0.7 * dot(L, N);
@@ -50,7 +50,8 @@
       return mix(color, vec3(1.6, 1.6, 1.6), c - 1.0);
     }
 
-    return c * color;
+    return c * color;*/
+	return color;
   }
 
   bool intersectWorld(vec3 rayOrigin, vec3 rayDir, out vec3 pos,
@@ -73,21 +74,21 @@
     {
       isSphere = false;
       pos = rayOrigin + ((rayOrigin.x + 2.7) / -rayDir.x) * rayDir;
-      if (pos.y*pos.y + pos.z*pos.z > 30.0)
+      if (pos.y*pos.y + pos.z*pos.z > 80.0)
       {
-
         return false;
       }
-      normal = vec3(1.0, 0.0, 0.0);
-      if (fract(pos.y / 1.0) > 0.5 == fract(pos.z / 1.0) > 0.5)
+      normal = vec3(0.0, 1.0, 0.0);
+//	   color =  texture2D(uSampler, vec2(vTexPosition.s, vTexPosition.t)).xyz;
+      color =  texture2D(uSampler, vec2(pos.y, pos.z)).xyz;
+ /*     if (fract(pos.y / 1.0) > 0.5 == fract(pos.z / 1.0) > 0.5)
       {
-      //  color = vec3(1.0);
-        color =  texture2D(uSampler, vec2(vTexPosition.s, vTexPosition.t)).xyz;
+       
       }
       else
       {
-        color = vec3(0.0);
-      }
+        color = vec3(0.9);
+      }*/
     }
     else {
     //  color = vec3(0.9,0,0);
@@ -116,7 +117,7 @@
                        norm, hitCol, isSphere, false))
     {
           if(!isSphere)
-               gl_FragColor = vec4(hitCol, 1.0);
+               gl_FragColor = vec4(lightAt(norm,p1,hitCol), 1.0);
           else
           {
               //outer edge of sphere
@@ -124,15 +125,13 @@
               //since we are inside sphere now we MUST intersect sphere again
               if (intersectWorld(p1, cameraDir, p2, norm, hitCol, isSphere, true))
               {
-
+				 gl_FragColor = vec4(lightAt(norm,p2,hitCol), 1.0);
                //inner edge of sphere
                 cameraDir = normalize(refract(cameraDir, normalize(-norm), 0.5));
                 if (intersectWorld(p2, cameraDir, p1, norm, hitCol, isSphere, false))
-                   gl_FragColor = vec4(hitCol, 1.0);
+                   gl_FragColor = vec4(lightAt(norm,p1,hitCol), 1.0);
                  else
                     gl_FragColor = vec4(velvet, 1.0);
-            
-
               }
               else
               {
@@ -263,10 +262,10 @@
     gl.vertexAttribPointer(aVertexPosition, 2, gl.FLOAT, false, 0, 0);
 
 	var texVertices = [
-         10.0,  1.0,
-        -10.0,  1.0,
-         10.0, -1.0,
-        -10.0, -1.0,
+        0.0, 0.0,
+        1.0, 0.0,
+        1.0, 1.0,
+        0.0, 1.0,
     ];
     var texPositionBuffer = gl.createBuffer();
 	gl.bindBuffer(gl.ARRAY_BUFFER, texPositionBuffer);
@@ -411,15 +410,36 @@ function initTextures() {
   wallImage.src = "starField1.jpg";
 }
 
+function isPowerOfTwo(x) {
+    return (x & (x - 1)) == 0;
+}
+ 
+function nextHighestPowerOfTwo(x) {
+    --x;
+    for (var i = 1; i < 32; i <<= 1) {
+        x = x | x >> i;
+    }
+    return x + 1;
+}
+
 function handleTextureLoaded(image, texture) {
  // console.log("handleTextureLoaded, image = " + image);
+   if (!isPowerOfTwo(image.width) || !isPowerOfTwo(image.height)) {
+        // Scale up the texture to the next highest power of two dimensions.
+        var canvas = document.createElement("canvas");
+        canvas.width = nextHighestPowerOfTwo(image.width);
+        canvas.height = nextHighestPowerOfTwo(image.height);
+        var ctx = canvas.getContext("2d");
+        ctx.drawImage(image, 0, 0, image.width, image.height);
+        image = canvas;
+    }
   gl.bindTexture(gl.TEXTURE_2D, texture);
   gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA,
-        gl.UNSIGNED_BYTE, image);
+        gl.UNSIGNED_BYTE, image); 
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE); //Prevents s-coordinate wrapping (repeating).
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE); //Prevents t-coordinate wrapping (repeating).
+ // gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE); //Prevents s-coordinate wrapping (repeating).
+ // gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE); //Prevents t-coordinate wrapping (repeating).
   gl.bindTexture(gl.TEXTURE_2D, null);
 }
 
