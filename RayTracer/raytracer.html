@@ -10,6 +10,7 @@
 
   const vec3 lightDir = vec3(0.577350269, 0.577350269, -0.577350269);
   varying vec3 vPosition;
+  varying vec2 vTexPosition;
   uniform vec3 cameraPos;
   uniform vec3 sphere3Center;
   uniform sampler2D uSampler;
@@ -80,7 +81,8 @@
       normal = vec3(1.0, 0.0, 0.0);
       if (fract(pos.y / 1.0) > 0.5 == fract(pos.z / 1.0) > 0.5)
       {
-        color = vec3(1.0);
+      //  color = vec3(1.0);
+        color =  texture2D(uSampler, vec2(vTexPosition.s, vTexPosition.t)).xyz;
       }
       else
       {
@@ -147,14 +149,18 @@
 
 <script id="shader-vs" type="x-shader/x-vertex">
   attribute vec2 aVertexPosition;
+   attribute vec2 aTexPosition;
   attribute vec3 aPlotPosition;
+ 
 
   varying vec3 vPosition;
+  varying vec2 vTexPosition;
 
   void main(void)
   {
     gl_Position = vec4(aVertexPosition, 1.0, 1.0);
     vPosition = aPlotPosition;
+    vTexPosition = aTexPosition;
  }
 </script>
 
@@ -207,6 +213,8 @@
 
   var shaderProgram;
   var aVertexPosition;
+  var aTexPosition;
+  var plotPositionBuffer;
   function initShaders()
   {
     var fragmentShader = getShader(gl, "shader-fs");
@@ -229,6 +237,9 @@
 
     aPlotPosition = gl.getAttribLocation(shaderProgram, "aPlotPosition");
     gl.enableVertexAttribArray(aPlotPosition);
+    
+    aTexPosition = gl.getAttribLocation(shaderProgram, "aTexPosition");
+    gl.enableVertexAttribArray(aTexPosition);
 
     cameraPos = gl.getUniformLocation(shaderProgram, "cameraPos");
     sphere3Center = gl.getUniformLocation(shaderProgram, "sphere3Center");
@@ -251,9 +262,19 @@
     gl.bindBuffer(gl.ARRAY_BUFFER, vertexPositionBuffer);
     gl.vertexAttribPointer(aVertexPosition, 2, gl.FLOAT, false, 0, 0);
 
-
-    var plotPositionBuffer = gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER, plotPositionBuffer);
+	var texVertices = [
+         10.0,  1.0,
+        -10.0,  1.0,
+         10.0, -1.0,
+        -10.0, -1.0,
+    ];
+    var texPositionBuffer = gl.createBuffer();
+	gl.bindBuffer(gl.ARRAY_BUFFER, texPositionBuffer);
+	gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(texVertices), gl.STATIC_DRAW);
+    gl.vertexAttribPointer(aTexPosition, 2, gl.FLOAT, false, 0, 0);
+	
+	plotPositionBuffer = gl.createBuffer();
+	gl.bindBuffer(gl.ARRAY_BUFFER, plotPositionBuffer);
     gl.vertexAttribPointer(aPlotPosition, 3, gl.FLOAT, false, 0, 0);
   }
 
@@ -327,7 +348,8 @@
     pushVec(cameraTopLeft, corners);
     pushVec(cameraBotRight, corners);
     pushVec(cameraBotLeft, corners);
-
+	
+	
     gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(corners), gl.STATIC_DRAW);
 
     gl.uniform3f(cameraPos, cameraFrom.x, cameraFrom.y, cameraFrom.z);
@@ -386,16 +408,18 @@ function initTextures() {
   wallTexture = gl.createTexture();
   wallImage = new Image();
   wallImage.onload = function() { handleTextureLoaded(wallImage, wallTexture); }
-  wallImage.src = "cubetexture.png";
+  wallImage.src = "starField1.jpg";
 }
 
 function handleTextureLoaded(image, texture) {
-  console.log("handleTextureLoaded, image = " + image);
+ // console.log("handleTextureLoaded, image = " + image);
   gl.bindTexture(gl.TEXTURE_2D, texture);
   gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA,
         gl.UNSIGNED_BYTE, image);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_NEAREST);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE); //Prevents s-coordinate wrapping (repeating).
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE); //Prevents t-coordinate wrapping (repeating).
   gl.bindTexture(gl.TEXTURE_2D, null);
 }
 
@@ -454,7 +478,6 @@ function handleTextureLoaded(image, texture) {
       <input type=button onclick="resizeCanvas(600)" value=medium>
       <input type=button onclick="resizeCanvas(800)" value=large>
       <input type=button onclick="fullScreen();" value="very large">
-      &nbsp;&nbsp;&nbsp;&nbsp;
       <input type=button onclick="flipAnim()" value=pause>
     </div>
     <div style="z-index:-1; text-align:center; width:100%;">
