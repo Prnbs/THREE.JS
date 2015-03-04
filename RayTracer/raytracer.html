@@ -11,8 +11,6 @@
   const vec3 lightDir = vec3(0.577350269, 0.577350269, -0.577350269);
   varying vec3 vPosition;
   uniform vec3 cameraPos;
-  uniform vec3 sphere1Center;
-  uniform vec3 sphere2Center;
   uniform vec3 sphere3Center;
   uniform sampler2D uSampler;
 
@@ -233,9 +231,9 @@
     gl.enableVertexAttribArray(aPlotPosition);
 
     cameraPos = gl.getUniformLocation(shaderProgram, "cameraPos");
-    sphere1Center = gl.getUniformLocation(shaderProgram, "sphere1Center");
+    sphere3Center = gl.getUniformLocation(shaderProgram, "sphere3Center");
     
-     initTextures();
+    initTextures();
   }
 
 
@@ -333,8 +331,6 @@
     gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(corners), gl.STATIC_DRAW);
 
     gl.uniform3f(cameraPos, cameraFrom.x, cameraFrom.y, cameraFrom.z);
-    gl.uniform3f(sphere1Center, x1, y1, z1);
-    gl.uniform3f(sphere2Center, x2, y2, z2);
     gl.uniform3f(sphere3Center, x3, y3, z3);
     
     
