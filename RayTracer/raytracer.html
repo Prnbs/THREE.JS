@@ -55,7 +55,7 @@
   }
 
   bool intersectWorld(vec3 rayOrigin, vec3 rayDir, out vec3 pos,
-                      out vec3 normal, out vec3 color, out bool isSphere, bool far)
+                      out vec3 normal, out vec3 color, out bool isSphere, bool far, bool hasHitSphere)
   {
     float d1, d2, d3;
     bool h1, h2, h3;
@@ -74,21 +74,21 @@
     {
       isSphere = false;
       pos = rayOrigin + ((rayOrigin.x + 2.7) / -rayDir.x) * rayDir;
-      if (pos.y*pos.y + pos.z*pos.z > 80.0)
+      if (pos.y*pos.y + pos.z*pos.z > 100.0)
       {
         return false;
       }
       normal = vec3(0.0, 1.0, 0.0);
-//	   color =  texture2D(uSampler, vec2(vTexPosition.s, vTexPosition.t)).xyz;
-      color =  texture2D(uSampler, vec2(pos.y, pos.z)).xyz;
- /*     if (fract(pos.y / 1.0) > 0.5 == fract(pos.z / 1.0) > 0.5)
-      {
+      if(!hasHitSphere){
+        color =  texture2D(uSampler, vec2(vTexPosition.s, vTexPosition.t)).xyz;
        
       }
-      else
-      {
-        color = vec3(0.9);
-      }*/
+      else{
+        color =  texture2D(uSampler, vec2(vTexPosition.s/abs(pos.y), vTexPosition.t/abs(pos.z))).xyz;
+      //  color = vec3(clamp(abs(pos.y),0.1,0.7), 0,0);//clamp(vTexPosition.t/abs(pos.z),0.1,0.9),0);
+     //   color = vec3(0,clamp(abs(pos.y),0.1,0.7), 0);
+     //   color =  texture2D(uSampler, vec2(clamp(abs(pos.y),0.1,0.7), clamp(abs(pos.y),0.1,0.7))).xyz;
+       }
     }
     else {
     //  color = vec3(0.9,0,0);
@@ -106,7 +106,7 @@
     vec3 col, hitCol, colM, col3;
     bool isSphere;
     vec3 red = vec3(0.9,0,0); //red
-    vec3 blue = vec3(0,0.9,0); //blue
+    vec3 black = vec3(0,0,0); //black
     vec3 yellow = vec3(0.89,0.89,0.24);//yellow
     vec3 empty = vec3(0,0,0);//black
     vec3 velvet = vec3(0.3,0.06, 0.96); //velvet
@@ -114,7 +114,7 @@
     col = vec3(1);
 
     if (intersectWorld(cameraPos, cameraDir, p1,
-                       norm, hitCol, isSphere, false))
+                       norm, hitCol, isSphere, false, false))
     {
           if(!isSphere)
                gl_FragColor = vec4(lightAt(norm,p1,hitCol), 1.0);
@@ -123,19 +123,17 @@
               //outer edge of sphere
               cameraDir = normalize(refract(cameraDir, normalize(norm), 0.5));
               //since we are inside sphere now we MUST intersect sphere again
-              if (intersectWorld(p1, cameraDir, p2, norm, hitCol, isSphere, true))
+              if (intersectWorld(p1, cameraDir, p2, norm, hitCol, isSphere, true, true))
               {
-				 gl_FragColor = vec4(lightAt(norm,p2,hitCol), 1.0);
-               //inner edge of sphere
+				//inner edge of sphere
                 cameraDir = normalize(refract(cameraDir, normalize(-norm), 0.5));
-                if (intersectWorld(p2, cameraDir, p1, norm, hitCol, isSphere, false))
+                if (intersectWorld(p2, cameraDir, p1, norm, hitCol, isSphere, false, true))
                    gl_FragColor = vec4(lightAt(norm,p1,hitCol), 1.0);
                  else
-                    gl_FragColor = vec4(velvet, 1.0);
+                   gl_FragColor = vec4(velvet, 1.0);
               }
               else
               {
-                //???
                   gl_FragColor = vec4(yellow, 1.0);
               }
           }
@@ -262,10 +260,12 @@
     gl.vertexAttribPointer(aVertexPosition, 2, gl.FLOAT, false, 0, 0);
 
 	var texVertices = [
+      
+         1.0, 0.0,
         0.0, 0.0,
-        1.0, 0.0,
-        1.0, 1.0,
-        0.0, 1.0,
+         1.0,  1.0,
+        0.0,  1.0,
+        
     ];
     var texPositionBuffer = gl.createBuffer();
 	gl.bindBuffer(gl.ARRAY_BUFFER, texPositionBuffer);
@@ -361,7 +361,7 @@
 
     gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
 
-    t += 0.03;
+    t += 0.01;
     if (t > Math.PI * 200) {
       t -= Math.PI * 200;
     }
@@ -424,7 +424,7 @@ function nextHighestPowerOfTwo(x) {
 
 function handleTextureLoaded(image, texture) {
  // console.log("handleTextureLoaded, image = " + image);
-   if (!isPowerOfTwo(image.width) || !isPowerOfTwo(image.height)) {
+    if (!isPowerOfTwo(image.width) || !isPowerOfTwo(image.height)) {
         // Scale up the texture to the next highest power of two dimensions.
         var canvas = document.createElement("canvas");
         canvas.width = nextHighestPowerOfTwo(image.width);
@@ -433,14 +433,15 @@ function handleTextureLoaded(image, texture) {
         ctx.drawImage(image, 0, 0, image.width, image.height);
         image = canvas;
     }
-  gl.bindTexture(gl.TEXTURE_2D, texture);
-  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA,
+    gl.bindTexture(gl.TEXTURE_2D, texture);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA,
         gl.UNSIGNED_BYTE, image); 
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
- // gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE); //Prevents s-coordinate wrapping (repeating).
- // gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE); //Prevents t-coordinate wrapping (repeating).
-  gl.bindTexture(gl.TEXTURE_2D, null);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+  //  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP); //Prevents s-coordinate wrapping (repeating).
+  //  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP); //Prevents t-coordinate wrapping (repeating).
+     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
+    gl.generateMipmap(gl.TEXTURE_2D);
+    gl.bindTexture(gl.TEXTURE_2D, null);
 }
 
 
