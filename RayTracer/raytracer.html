@@ -5,15 +5,39 @@
 <title>Ray tracer using WebGL</title>
 <meta http-equiv="content-type" content="text/html; charset=ISO-8859-1">
 
+<script id="shader-vs" type="x-shader/x-vertex">
+  attribute vec2 aVertexPosition;
+  attribute vec2 aTexPosition;
+  attribute vec3 aPlotPosition;
+ 
+
+  varying vec3 vPosition;
+  varying vec2 vTexPosition;
+  varying vec2 inVertex;
+
+  void main(void)
+  {
+    gl_Position = vec4(aVertexPosition, 1.0, 1.0);
+    vPosition = aPlotPosition;
+    inVertex = aVertexPosition;
+    vTexPosition = aPlotPosition.yz;
+ }
+</script>
+
 <script id="shader-fs" type="x-shader/x-fragment">
   precision mediump float;
 
   const vec3 lightDir = vec3(0.577350269, 0.577350269, -0.577350269);
   varying vec3 vPosition;
   varying vec2 vTexPosition;
+<<<<<<< HEAD
+  varying vec2 inVertex;
+=======
+>>>>>>> 3a7d4cb3bf8756d5424dd2bc8e7112963d8e104f
   uniform vec3 cameraPos;
   uniform vec3 sphere3Center;
   uniform sampler2D uSampler;
+  uniform vec4 clipCords; // (clipCords.x, clipCords.y) to (clipCords.z, clipCords.w) is the clip rectangle
 
   bool intersectSphere(vec3 center, vec3 rayOrigin, vec3 rayDir,
                        out float dist, bool far) {
@@ -38,8 +62,6 @@
     return true;
   }
 
-
-
   vec3 lightAt(vec3 N, vec3 V, vec3 color) {
   /*  vec3 L = lightDir;
     vec3 R = reflect(-L, N);
@@ -61,6 +83,7 @@
     bool h1, h2, h3;
     
     h3 = intersectSphere(sphere3Center, rayOrigin, rayDir, d3, far);
+    vec2 col;
 
 
     if (h3)
@@ -80,6 +103,22 @@
       }
       normal = vec3(0.0, 1.0, 0.0);
       if(!hasHitSphere){
+<<<<<<< HEAD
+      //  color =  texture2D(uSampler, vec2(vTexPosition.t, vTexPosition.s)).xyz;
+        col.x = (inVertex.x - clipCords.x)/(clipCords.z-clipCords.x);
+        col.y = (inVertex.y - clipCords.y)/(clipCords.w-clipCords.y);
+        color = texture2D(uSampler, col).xyz;
+
+        color = vec3(col, 0);
+
+      }
+      else{
+        color =  texture2D(uSampler, vec2(vTexPosition.t/abs(pos.y), vTexPosition.s/abs(pos.z))).xyz;
+
+      //  color = vec3(clamp(abs(pos.y),0.1,0.7), 0,0);//clamp(vTexPosition.t/abs(pos.z),0.1,0.9),0);
+     //   color = vec3(0,clamp(abs(pos.y),0.1,0.7), 0);
+     //   color =  texture2D(uSampler, vec2(clamp(abs(pos.y),0.1,0.7), clamp(abs(pos.z),0.1,0.7))).xyz;
+=======
         color =  texture2D(uSampler, vec2(vTexPosition.s, vTexPosition.t)).xyz;
        
       }
@@ -88,6 +127,7 @@
       //  color = vec3(clamp(abs(pos.y),0.1,0.7), 0,0);//clamp(vTexPosition.t/abs(pos.z),0.1,0.9),0);
      //   color = vec3(0,clamp(abs(pos.y),0.1,0.7), 0);
      //   color =  texture2D(uSampler, vec2(clamp(abs(pos.y),0.1,0.7), clamp(abs(pos.y),0.1,0.7))).xyz;
+>>>>>>> 3a7d4cb3bf8756d5424dd2bc8e7112963d8e104f
        }
     }
     else {
@@ -144,6 +184,9 @@
   }
 </script>
 
+<<<<<<< HEAD
+
+=======
 <script id="shader-vs" type="x-shader/x-vertex">
   attribute vec2 aVertexPosition;
    attribute vec2 aTexPosition;
@@ -160,6 +203,7 @@
     vTexPosition = aTexPosition;
  }
 </script>
+>>>>>>> 3a7d4cb3bf8756d5424dd2bc8e7112963d8e104f
 
 
 <script type="application/x-javascript">
@@ -240,6 +284,11 @@
 
     cameraPos = gl.getUniformLocation(shaderProgram, "cameraPos");
     sphere3Center = gl.getUniformLocation(shaderProgram, "sphere3Center");
+<<<<<<< HEAD
+
+    clipCords = gl.getUniformLocation(shaderProgram, "clipCords");
+=======
+>>>>>>> 3a7d4cb3bf8756d5424dd2bc8e7112963d8e104f
     
     initTextures();
   }
@@ -260,12 +309,18 @@
     gl.vertexAttribPointer(aVertexPosition, 2, gl.FLOAT, false, 0, 0);
 
 	var texVertices = [
+<<<<<<< HEAD
+=======
       
+>>>>>>> 3a7d4cb3bf8756d5424dd2bc8e7112963d8e104f
          1.0, 0.0,
         0.0, 0.0,
          1.0,  1.0,
         0.0,  1.0,
+<<<<<<< HEAD
+=======
         
+>>>>>>> 3a7d4cb3bf8756d5424dd2bc8e7112963d8e104f
     ];
     var texPositionBuffer = gl.createBuffer();
 	gl.bindBuffer(gl.ARRAY_BUFFER, texPositionBuffer);
@@ -307,23 +362,22 @@
   t = 130.150;
   function drawScene()
   {
-    x1 = Math.sin(1.1) * 1.5;
-    y1 = Math.cos(t * 1.3) * 1.5;
-    z1 = Math.sin(t + Math.PI/3) * 1.5;
-    x2 = Math.cos(5.2) * 1.5;
-    y2 = Math.sin(t * 1.4) * 1.5;
-    z2 = Math.sin(t*1.25 - Math.PI/3) * 1.5;
-    x3 = Math.cos(8.15) * 1.5;
+    x3 = Math.cos(1.25) * 1.5;
     y3 = Math.sin(t * 1.37) * 1.5;
-    z3 = Math.sin(t*1.27) * 1.5;
+    z3 = Math.sin(1.27) * 1.5;
 
     camTime = 130.150;
-    cameraFrom = { x: Math.sin(camTime * 0.4) * 18,
-                   y: Math.sin(camTime * 0.13) * 5 + 5,
-                   z: Math.cos(camTime * 0.4) * 18 };
+    // cameraFrom = { x: Math.sin(camTime * 0.4) * 18,
+    //                y: Math.sin(camTime * 0.13) * 5 + 5,
+    //                z: Math.cos(camTime * 0.4) * 18 };
+
+
+     cameraFrom = { x: 30,
+                    y: 0.1,
+                    z: 0 };
     cameraTo = { x:0, y:0, z:0 };
     cameraPersp = 6;
-    up = { x: 0, y: 1, z: 0 };
+    up = { x: 1, y: 0, z: 0 };
     cameraDir = normalize(vectSub(cameraTo, cameraFrom));
 
     cameraLeft = normalize(crossProd(cameraDir, up));
@@ -353,6 +407,8 @@
 
     gl.uniform3f(cameraPos, cameraFrom.x, cameraFrom.y, cameraFrom.z);
     gl.uniform3f(sphere3Center, x3, y3, z3);
+
+    gl.uniform4f(clipCords, 0,0,  canvas.width, canvas.height);
     
     
     gl.activeTexture(gl.TEXTURE0);
@@ -407,7 +463,11 @@ function initTextures() {
   wallTexture = gl.createTexture();
   wallImage = new Image();
   wallImage.onload = function() { handleTextureLoaded(wallImage, wallTexture); }
+<<<<<<< HEAD
+  wallImage.src = "starField3.jpg";
+=======
   wallImage.src = "starField1.jpg";
+>>>>>>> 3a7d4cb3bf8756d5424dd2bc8e7112963d8e104f
 }
 
 function isPowerOfTwo(x) {
@@ -424,6 +484,17 @@ function nextHighestPowerOfTwo(x) {
 
 function handleTextureLoaded(image, texture) {
  // console.log("handleTextureLoaded, image = " + image);
+<<<<<<< HEAD
+    // if (!isPowerOfTwo(image.width) || !isPowerOfTwo(image.height)) {
+    //     // Scale up the texture to the next highest power of two dimensions.
+    //     var canvas = document.createElement("canvas");
+    //     canvas.width = nextHighestPowerOfTwo(image.width);
+    //     canvas.height = nextHighestPowerOfTwo(image.height);
+    //     var ctx = canvas.getContext("2d");
+    //     ctx.drawImage(image, 0, 0, image.width, image.height);
+    //     image = canvas;
+    // }
+=======
     if (!isPowerOfTwo(image.width) || !isPowerOfTwo(image.height)) {
         // Scale up the texture to the next highest power of two dimensions.
         var canvas = document.createElement("canvas");
@@ -433,14 +504,23 @@ function handleTextureLoaded(image, texture) {
         ctx.drawImage(image, 0, 0, image.width, image.height);
         image = canvas;
     }
+>>>>>>> 3a7d4cb3bf8756d5424dd2bc8e7112963d8e104f
     gl.bindTexture(gl.TEXTURE_2D, texture);
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA,
         gl.UNSIGNED_BYTE, image); 
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+<<<<<<< HEAD
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE); //Prevents s-coordinate wrapping (repeating).
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE); //Prevents t-coordinate wrapping (repeating).
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+  //   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.MIPMAP_LINEAR);
+  //  gl.generateMipmap(gl.TEXTURE_2D);
+=======
   //  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP); //Prevents s-coordinate wrapping (repeating).
   //  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP); //Prevents t-coordinate wrapping (repeating).
      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
     gl.generateMipmap(gl.TEXTURE_2D);
+>>>>>>> 3a7d4cb3bf8756d5424dd2bc8e7112963d8e104f
     gl.bindTexture(gl.TEXTURE_2D, null);
 }
 
